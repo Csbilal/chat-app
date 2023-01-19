@@ -12,6 +12,7 @@ import sh4 from "../../images/sh4.png";
 import sh8 from "../../images/sh8.png";
 import { AppContext } from "../../utils";
 import { url } from "../URL";
+import io from "socket.io-client";
 // import Eth from "./assets/Eth.png";
 // import Tz from "./assets/Tz.png";
 // import Flow from "./assets/Flow.png";
@@ -23,6 +24,8 @@ export default function Login() {
   const { account } = useContext(AppContext);
   const [value, setValue] = React.useState("0");
   const [users, setUsers] = React.useState([]);
+
+  const socket = io("http://localhost:8080");
 
   console.log(users, "users");
 
@@ -76,14 +79,18 @@ export default function Login() {
         });
         console.log("data login:", data);
 
-        setUsers(data.user);
+        // socket.emit("login", data);
 
         localStorage.setItem("loginUser", JSON.stringify(data));
         if (data.status === false) {
           toast.error(data.msg, toastOptions);
         }
         if (data.status === true) {
-          console.log("login succesfully", data);
+          // console.log("login succesfully", data?.user?._id);
+
+          setUsers(data?.user?._id);
+
+          socket.emit("login", data?.user?._id);
 
           localStorage.setItem("nft_aly_Token", data?.token);
           setValue({

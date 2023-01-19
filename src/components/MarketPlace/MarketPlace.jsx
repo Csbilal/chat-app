@@ -236,7 +236,9 @@ function MarketPlace() {
                 return (
                   <Grid key={i} item xs={12} sm={4} md={3}>
                     <Button
-                      onClick={() => navigate("/chat", { state: { _id } })}
+                      onClick={() =>
+                        navigate("/chat", { state: { _id, name } })
+                      }
                     >
                       <MarketPlaceCard
                         // img={img}

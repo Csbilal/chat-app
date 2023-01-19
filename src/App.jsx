@@ -126,7 +126,7 @@ function App() {
   };
   return (
     <>
-      <NetworkChange open={switchNetwork} setOpen={setswitchNetwork} />
+      {/* <NetworkChange open={switchNetwork} setOpen={setswitchNetwork} /> */}
       <ProviderMui theme={DarkTheme}>
         <Header id={userid} />
         <Routes>

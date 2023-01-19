@@ -138,18 +138,18 @@ io.on("connection", (socket) => {
     socket.emit("allRoomsUsers", { rooms });
   })
 
-  socket.on('login', function(userId){
-    console.log('a user ' + userId + ' connected');
-    users[socket.id] = userId;
+  // socket.on('login', function(userId){
+  //   console.log('a user ' + userId + ' connected');
+  //   users[socket.id] = userId;
 
-    socket.emit("getdata", {users:users[socket.id]})
-  });
+  //   socket.emit("getdata", {users:users[socket.id]})
+  // });
 
-  socket.on('disconnect', function(){
-    console.log('user ' + users[socket.id] + ' disconnected');
-    // remove saved socket from users object
-    delete users[socket.id];
-  });
+  // socket.on('disconnect', function(){
+  //   console.log('user ' + users[socket.id] + ' disconnected');
+  //   // remove saved socket from users object
+  //   delete users[socket.id];
+  // });
 
 
 
@@ -180,24 +180,34 @@ io.on("connection", (socket) => {
 
 
   socket.on('login', (_id) => {
-    usersModal.findOneAndUpdate({ _id:_id }, { status: 'online' }, (err, user) => {
+    usersModal.findOneAndUpdate({ _id:_id }, { status: 'online' } , (err, user) => {
+      console.log(user)
       if (err) {
         console.log(err);
       } else {
-        io.emit('user_status', { _id, status: 'online' });
+        socket.emit('user_status', { _id, status: user.status, name:user.name});
       }
     });
   });
 
   socket.on('logout', (_id) => {
     usersModal.findOneAndUpdate({ _id:_id }, { status: 'offline' }, (err, user) => {
+      console.log(user)
       if (err) {
         console.log(err);
       } else {
-        io.emit('user_status', { _id, status: 'offline' });
+        socket.emit('user_status', { _id, status: 'offline' });
       }
     });
   });
+
+  socket.on("user_status",(_id)=>{
+    usersModal.findOne({_id:_id},(err,user)=>{
+      console.log(user)
+      socket.emit("user-data",user)
+      return user
+    })
+  } )
     
   // USER IS OFFLINE
   socket.on("offline", (userId) => {

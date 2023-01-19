@@ -23,6 +23,8 @@ import axios from "axios";
 // import pdfIcon from "@mui/icons-material/PictureAsPdf";
 import pdfIcon from "../../images/pdfIcon.png";
 import files from "../../images/file.png";
+import { useCallback } from "react";
+// import { setDatasets } from "react-chartjs-2/dist/utils";
 const Chat = () => {
   const [showEmojiPicker, setShowEmojiPiker] = useState(false);
 
@@ -35,6 +37,7 @@ const Chat = () => {
   const [isTyping, setIsTyping] = useState();
   const [activeUser, setActiveUser] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
+  const [userData, setUserData] = useState([]);
 
   console.log(activeUser, "aactiverUser------------");
 
@@ -59,34 +62,50 @@ const Chat = () => {
       user1: location?.state?._id,
       user2: myAddress,
     });
-  }, []);
 
-  console.log(onlineUsers, "online");
+    socket.emit("user_status", location?.state?._id);
+  }, []);
 
   useEffect(() => {
-    socket.on("user_status", (data) => {
-      console.log(data);
-      setOnlineUsers((prevUsers) => {
-        console.log(prevUsers, "0000");
-        return prevUsers.map((user) => {
-          if (user._id === data._id) {
-            return { ...user, status: data.status };
-          }
-          return user;
-        });
-      });
+    socket.on("user-data", (user) => {
+      setUserData(user);
     });
-    let Username = "location?.state?._id ";
-    socket.emit("login", location?.state?._id);
-    // setOnlineUsers((prevUsers) => [
-    //   ...prevUsers,
-    //   { Username, status: "online" },
-    // ]);
-  }, []);
+  }, [socket, userData]);
 
-  // socket.emit("online", myAddress);
-  // // useEffect(() => {
-  // // });
+  console.log(userData, "userDara");
+
+  console.log(onlineUsers, "onlineusers");
+
+  // useEffect(() => {
+  //   socket.on("user_status", (data) => {
+  //     console.log(data, "first");
+  //     setOnlineUsers(data);
+  //     // setOnlineUsers((prevUsers) => {
+  //     //   console.log(prevUsers, "-pre---");
+  //     //   return prevUsers.map((user) => {
+  //     //     console.log(user, "lat");
+  //     //     if (user._id === data._id) {
+  //     //       return { ...user, status: data?.status };
+  //     //     }
+  //     //     return user;
+  //     //   });
+  //     // });
+  //   });
+
+  //   // console.log(onlineUsers, "---");
+
+  //   // socket.emit("login", location?.state?._id);
+
+  //   // let Username = location?.state?._id;
+  //   //   setOnlineUsers((prevUsers) => [
+  //   //     ...prevUsers,
+  //   //     { Username, status: "online" },
+  //   //   ]);
+  // }, []);
+
+  useEffect(() => {
+    console.log(onlineUsers, "onlineUsers");
+  }, [onlineUsers]);
 
   useEffect(() => {
     socket.on("recieve-message", ({ name, message, type }) => {
@@ -175,12 +194,12 @@ const Chat = () => {
   useEffect(() => {
     socket.on("typing", () => setIsTyping(true));
     socket.on("stop typing", () => setIsTyping(false));
-    socket.emit("login", location?.state?._id);
+    // socket.emit("login", location?.state?._id);
 
-    socket.on("getdata", ({ users }) => {
-      console.log(users, "--------abc");
-      setActiveUser(users);
-    });
+    // socket.on("getdata", ({ users }) => {
+    //   console.log(users, "--------abc");
+    //   setActiveUser(users);
+    // });
   }, []);
 
   const allMsg = [...initialMsg, ...msg];
@@ -234,7 +253,7 @@ const Chat = () => {
             data
           );
           await setImages(await res.data);
-          console.log(res.data, "------------------------");
+          // console.log(res.data, "------------------------");
         } catch (error) {
           console.log(error);
         }
@@ -253,17 +272,19 @@ const Chat = () => {
 
   // // get users
 
-  // const getAllUser = async () => {
-  //   try {
-  //     const res = await axios.get("http://localhost:8080/getAllusers");
-  //     console.log(res.data, "data");
-  //     setActiverUser(res.data);
-  //   } catch (error) {}
-  // };
+  const getAllUser = useCallback(async () => {
+    try {
+      const res = await axios.get("http://localhost:8080/getAllusers");
+      console.log(res.data, "data");
+      const newData = res.data.filter((x) => x._id == location?.state?._id);
+      console.log(newData, "abc");
+      setOnlineUsers(newData);
+    } catch (error) {}
+  }, [location]);
 
-  // useEffect(() => {
-  //   getAllUser();
-  // }, []);
+  useEffect(() => {
+    getAllUser();
+  }, [getAllUser, userData]);
 
   return (
     <Box
@@ -292,7 +313,7 @@ const Chat = () => {
             sx={{ color: "white" }}
             primary={
               <Typography type="body2" style={{ color: "#FFFFFF" }}>
-                Rosiie
+                {location?.state?.name}
               </Typography>
             }
             secondary={
@@ -306,7 +327,10 @@ const Chat = () => {
               >
                 {/* {activeUser === location?.state?._id ? "online" : "offline"} */}
 
-                {onlineUsers?.status}
+                {/* {onlineUsers?.map((user) => {
+                  return <div> {user.status} </div>;
+                })} */}
+                {userData?.status}
               </Typography>
             }
           />
