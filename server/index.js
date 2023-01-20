@@ -179,9 +179,10 @@ io.on("connection", (socket) => {
   });
 
 
-  socket.on('login', (_id) => {
-    usersModal.findOneAndUpdate({ _id:_id }, { status: 'online' } , (err, user) => {
-      console.log(user)
+  socket.on('login', ({_id,timestamp}) => {
+    console.log(_id, timestamp)
+    usersModal.findOneAndUpdate({ _id:_id }, { status: 'online' ,lastseen:timestamp} , (err, user) => {
+      // console.log(user)
       if (err) {
         console.log(err);
       } else {
@@ -190,8 +191,9 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on('logout', (_id) => {
-    usersModal.findOneAndUpdate({ _id:_id }, { status: 'offline' }, (err, user) => {
+  socket.on('logout', ({_id,timestamp}) => {
+    console.log(_id, timestamp)
+    usersModal.findOneAndUpdate({ _id:_id }, { status: 'offline',lastseen:timestamp }, (err, user) => {
       console.log(user)
       if (err) {
         console.log(err);

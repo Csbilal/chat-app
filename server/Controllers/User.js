@@ -5,7 +5,8 @@ const privateKey = "bloctech";
 
 /////////////create user, and save data in mongoDB//////////
 export const createuser = async (req, res, next) => {
-  const { email,  } = req.body;
+  const { email  } = req.body;
+  console.log(req.body)
   try {
     const user = await usersModal.findOne({
       $or: [{ email }, ],

@@ -89,8 +89,8 @@ export default function Login() {
           // console.log("login succesfully", data?.user?._id);
 
           setUsers(data?.user?._id);
-
-          socket.emit("login", data?.user?._id);
+          const date = new Date().toLocaleString();
+          socket.emit("login", { _id: data?.user?._id, timestamp: date });
 
           localStorage.setItem("nft_aly_Token", data?.token);
           setValue({

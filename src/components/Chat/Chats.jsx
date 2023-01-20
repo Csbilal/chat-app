@@ -317,21 +317,29 @@ const Chat = () => {
               </Typography>
             }
             secondary={
-              <Typography
-                type="body2"
-                style={{
-                  color: "#EBF0F0",
-                  fontSize: "0.7rem",
-                  opacity: "0.6",
-                }}
-              >
-                {/* {activeUser === location?.state?._id ? "online" : "offline"} */}
+              <>
+                <Typography
+                  type="body2"
+                  style={{
+                    color: "#EBF0F0",
+                    fontSize: "0.7rem",
+                    opacity: "0.6",
+                  }}
+                >
+                  {/* {activeUser === location?.state?._id ? "online" : "offline"} */}
 
-                {/* {onlineUsers?.map((user) => {
+                  {/* {onlineUsers?.map((user) => {
                   return <div> {user.status} </div>;
                 })} */}
-                {userData?.status}
-              </Typography>
+                  {userData?.status === "online" ? (
+                    <div>online</div>
+                  ) : (
+                    <div>
+                      offline <br /> lastseen at {userData?.lastseen}
+                    </div>
+                  )}
+                </Typography>
+              </>
             }
           />
         </ListItem>

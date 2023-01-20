@@ -15,7 +15,7 @@ const userSchema = new Schema({
   },
   walletaddress: {
     type: String,
-     default:""
+    default:"12"
   },
   img: {
     type: String,
@@ -24,6 +24,10 @@ const userSchema = new Schema({
   status:{
     type:String,
     default:"offline",
+  },
+  lastseen:{
+    type:String,
+    default:""
   }
 });
 const usersModal = mongoose.model("nftlay", userSchema);

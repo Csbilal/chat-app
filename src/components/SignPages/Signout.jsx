@@ -9,8 +9,11 @@ function Signout() {
   const navigate = useNavigate();
   // useEffect(() => {
   // }, []);
+  // const date = new Date().toLocaleString();
+
+  let dates = new Date().toLocaleString();
   useEffect(() => {
-    socket.emit("logout", user?.user?._id);
+    socket.emit("logout", { _id: user?.user?._id, timestamp: dates });
 
     setTimeout(() => {
       if (token) {

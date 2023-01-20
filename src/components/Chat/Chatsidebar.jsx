@@ -38,7 +38,7 @@ const Chatsidebar = () => {
       setMyRooms(allusers);
       // console.log(rooms, allusers, "This is room and users");
     });
-  }, []);
+  }, [myAddress, socket]);
   // const matches1 = useMediaQuery("(max-width:1279px)");
   const theme = useTheme();
 
