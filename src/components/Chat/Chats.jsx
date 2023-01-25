@@ -20,11 +20,14 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Picker from "emoji-picker-react";
 import axios from "axios";
-// import pdfIcon from "@mui/icons-material/PictureAsPdf";
+
 import pdfIcon from "../../images/pdfIcon.png";
 import files from "../../images/file.png";
 import { useCallback } from "react";
-// import { setDatasets } from "react-chartjs-2/dist/utils";
+import MicIcon from "@mui/icons-material/Mic";
+
+import RecordRTC from "recordrtc";
+
 const Chat = () => {
   const [showEmojiPicker, setShowEmojiPiker] = useState(false);
 
@@ -39,7 +42,18 @@ const Chat = () => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [userData, setUserData] = useState([]);
 
-  console.log(activeUser, "aactiverUser------------");
+  // VOICE STATE
+  const [recorder, setRecorder] = useState(null);
+  const [audioBlob, setAudioBlob] = useState(null);
+  console.log(audioBlob, "Aduis---v");
+
+  const [isRecording, setIsRecording] = useState(false);
+  const [voice, setVoice] = useState("");
+  console.log(voice, "voice---v");
+
+  //////////////////////////////////////////
+
+  // console.log(activeUser, "aactiverUser------------");
 
   const socket = io("http://localhost:8080");
   const location = useLocation();
@@ -76,35 +90,8 @@ const Chat = () => {
 
   console.log(onlineUsers, "onlineusers");
 
-  // useEffect(() => {
-  //   socket.on("user_status", (data) => {
-  //     console.log(data, "first");
-  //     setOnlineUsers(data);
-  //     // setOnlineUsers((prevUsers) => {
-  //     //   console.log(prevUsers, "-pre---");
-  //     //   return prevUsers.map((user) => {
-  //     //     console.log(user, "lat");
-  //     //     if (user._id === data._id) {
-  //     //       return { ...user, status: data?.status };
-  //     //     }
-  //     //     return user;
-  //     //   });
-  //     // });
-  //   });
-
-  //   // console.log(onlineUsers, "---");
-
-  //   // socket.emit("login", location?.state?._id);
-
-  //   // let Username = location?.state?._id;
-  //   //   setOnlineUsers((prevUsers) => [
-  //   //     ...prevUsers,
-  //   //     { Username, status: "online" },
-  //   //   ]);
-  // }, []);
-
   useEffect(() => {
-    console.log(onlineUsers, "onlineUsers");
+    // console.log(onlineUsers, "onlineUsers");
   }, [onlineUsers]);
 
   useEffect(() => {
@@ -194,12 +181,6 @@ const Chat = () => {
   useEffect(() => {
     socket.on("typing", () => setIsTyping(true));
     socket.on("stop typing", () => setIsTyping(false));
-    // socket.emit("login", location?.state?._id);
-
-    // socket.on("getdata", ({ users }) => {
-    //   console.log(users, "--------abc");
-    //   setActiveUser(users);
-    // });
   }, []);
 
   const allMsg = [...initialMsg, ...msg];
@@ -264,13 +245,57 @@ const Chat = () => {
     setfile("");
   }, [file]);
 
-  // useEffect(() => {
-  //   socket.on("getusers", (user) => {
-  //     setActiverUser(user);
-  //   });
-  // }, []);
+  //  ////// //// / // / / // / / / // VOICE  SEND
 
-  // // get users
+  const startRecording = () => {
+    setIsRecording(true);
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        const newRecorder = RecordRTC(stream, { type: "audio" });
+        setRecorder(newRecorder);
+        newRecorder.startRecording();
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
+  const stopRecording = () => {
+    setIsRecording(false);
+    recorder.stopRecording(() => {
+      setAudioBlob(recorder.getBlob());
+    });
+  };
+
+  const sendVoice = async () => {
+    try {
+      const formData = new FormData();
+
+      formData.append("file", audioBlob);
+      const response = await axios.post(
+        "http://localhost:8080/api/voice",
+        formData
+      );
+      setVoice(await response.data);
+
+      if (voice) {
+        socket.emit("message", {
+          name: myAddress,
+          message: voice,
+          otherUser: location?.state?._id,
+          type: "audio",
+        });
+      }
+
+      console.log(response.data, "a--asas");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  // const sendAudio = () => {};
+
+  // ///////////////////////////////////////////////////
 
   const getAllUser = useCallback(async () => {
     try {
@@ -402,6 +427,11 @@ const Chat = () => {
                 >
                   {msg?.message}
                 </Box>
+              ) : msg?.type === "audio" ? (
+                <Box>
+                  <audio src={msg?.message} controls />
+                  {/* <audio src={voice}  controls /> */}
+                </Box>
               ) : (
                 <Box>
                   {alltypes?.filter((item) => {
@@ -467,39 +497,6 @@ const Chat = () => {
           );
         })}
         <div ref={bottomRef} />
-        {/* <Box className="chat-msg chat-reciver">
-          <Box
-            sx={{
-              backgroundColor: "transparent",
-              padding: "0.5rem 1rem",
-              border: "1px solid #0DF17F",
-              borderRadius: "15px",
-              color: "white",
-              maxWidth: "230px",
-            }}
-          >
-            I’m doing great, 😁 How about you?
-          </Box>
-
-          <Avatar src={popIcon41} sx={{ marginLeft: "1rem" }}></Avatar>
-        </Box>
-        <Box className="chat-msg">
-          <Avatar src={popIcon41}></Avatar>
-          <Box
-            sx={{
-              backgroundColor: "#155A3E",
-              padding: "0.5rem 1rem",
-              marginLeft: "1rem",
-              borderRadius: "15px",
-              color: "white",
-            }}
-          >
-            I’m fine.
-            <br />
-            Actually I really like your NFT collection, they
-            <br /> are awesome
-          </Box>
-        </Box> */}
       </div>
 
       <Box mb={2} px={6} sx={{ position: "relative" }}>
@@ -533,12 +530,7 @@ const Chat = () => {
                 borderColor: "#0DF17F",
               },
             },
-            // input: {
-            //   "&::placeholder": {
-            //     textOverflow: "ellipsis !important",
-            //     color: theme.primary.text,
-            //   },
-            // },
+
             input: {
               color: theme.primary.text,
               fontSize: { xs: "12px", md: "14px" },
@@ -547,9 +539,6 @@ const Chat = () => {
           }}
           id="standard-name"
           value={thisMsg}
-          // onChange={(e) => {
-          //   setThisMsg(e.target.value);
-          // }}
           onChange={typingHandler}
           type="text"
           placeholder={"Thank you so much that very sweet of you "}
@@ -602,6 +591,29 @@ const Chat = () => {
                       marginLeft: "1rem",
                     }}
                   ></Box>
+                </Box>
+              </>
+            ),
+            endAdornment: (
+              <>
+                <Box>
+                  <button
+                    onMouseDown={startRecording}
+                    onMouseUp={stopRecording}
+                  >
+                    {isRecording ? (
+                      <>
+                        "Stop" <MicIcon />
+                      </>
+                    ) : (
+                      <>
+                        "start" <MicIcon />
+                      </>
+                    )}
+                  </button>
+                  {audioBlob && (
+                    <button onClick={sendVoice}>Send Voice </button>
+                  )}
                 </Box>
               </>
             ),

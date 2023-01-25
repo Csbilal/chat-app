@@ -26,6 +26,7 @@ import MarqueeComp from "./components/LandingPage/MarqueeComp";
 import { url } from "./components/URL";
 import ChatMain from "./components/Chat/MainChat";
 import Signout from "./components/SignPages/Signout";
+import Voice from "./components/voiceSend/Voice";
 function App() {
   const [switchNetwork, setswitchNetwork] = useState(false);
   const [userid, setUserId] = useState("");
@@ -154,6 +155,8 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/chat" element={<ChatMain />} />
           <Route path="/signout" element={<Signout />} />
+          <Route path="/Voice" element={<Voice />} />
+
           <Route
             path="/user-profile"
             element={

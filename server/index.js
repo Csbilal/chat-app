@@ -10,6 +10,9 @@ import pushMsg from "./ChatOperations/pushMsg.js";
 import findRoom from "./ChatOperations/findRoom.js";
 import path from "path";
 import fs from "fs";
+import VoiceMessageModal from "./Modules/voiceSchema.js";
+import mongoose from "mongoose";
+import  grid  from "gridfs-stream";
 
 
 const app = express();
@@ -93,6 +96,37 @@ app.use((error, req, res, next) => {
   console.error(error);
   res.status(500).json({ status: false, data: error });
 });
+
+
+
+// --------------------------
+// let gfs, gridfsBucket;
+// const conn = mongoose.connection;
+// conn.once("open", () => {
+//   gridfsBucket = new mongoose.mongo.GridFSBucket(conn.db, {
+//     bucketName: "voices",
+//   });
+//   gfs = grid(conn.db, mongoose.mongo);
+//   gfs.collection("voices");
+// });
+
+// const storages = multer.memoryStorage();
+// const uploads = multer({ storages });
+
+// app.post('/api/voice', uploads.single('audio'), (req, res) => {
+//   console.log(req.file.buffer,"------")
+//   const writeStream = gfs.createWriteStream({
+//     filename: 'voice.wav'
+//   });
+//   writeStream.write(req.file.buffer);
+//   writeStream.end();
+//   res.send('Voice message saved');
+// });
+
+
+
+
+// ---------------------------
 
 app.get("/*", function (req, res) {
   res.sendFile(path.join(__dirname, "./build/index.html"), function (err) {
@@ -191,6 +225,7 @@ io.on("connection", (socket) => {
     });
   });
 
+  
   socket.on('logout', ({_id,timestamp}) => {
     console.log(_id, timestamp)
     usersModal.findOneAndUpdate({ _id:_id }, { status: 'offline',lastseen:timestamp }, (err, user) => {
@@ -210,13 +245,24 @@ io.on("connection", (socket) => {
       return user
     })
   } )
-    
-  // USER IS OFFLINE
-  socket.on("offline", (userId) => {
-      console.log(userId, "Is Offline!"); // update offline status
+
+  socket.on('send_voice_message', (audioData) => {
+    console.log('Received voice message');
+
+    // Save the audio data to the MongoDB database
+    const voiceMessage = new VoiceMessageModal({ data: audioData });
+  
+    voiceMessage.save((err) => {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log('Voice message saved to database');
+        // Emit a 'voice_message_received' event to all connected clients
+        io.emit('voice_message_received', voiceMessage);
+      }
+    });
   });
 
-  // socket.on("disconnect", (reason ) => {
-  // console.log(`remove from socket becuase of some ${reason}`)    
-  // });
+    
+
 });
